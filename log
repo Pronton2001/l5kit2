@@ -1,0 +1,42 @@
+
+dict_keys(['extent', 'type', 'agent_from_world', 'world_from_agent', 'target_positions', 'target_yaws', 'target_extents', 'target_availabilities', 'history_positions', 'history_yaws', 'history_extents', 'history_availabilities', 'centroid', 'yaw', 'speed', 'all_other_agents_history_positions', 'all_other_agents_history_yaws', 'all_other_agents_history_extents', 'all_other_agents_history_availability', 'all_other_agents_future_positions', 'all_other_agents_future_yaws', 'all_other_agents_future_extents', 'all_other_agents_future_availability', 'all_other_agents_types', 'agent_trajectory_polyline', 'agent_polyline_availability', 'other_agents_polyline', 'other_agents_polyline_availability', 'lanes', 'lanes_availabilities', 'lanes_mid', 'lanes_mid_availabilities', 'crosswalks', 'crosswalks_availabilities'])
+
+
+k=extent| v=<class 'numpy.ndarray'>| shape=(3,)| min=1.8| max=4.87| mean=2.8400000000000003
+k=type| v=<class 'int'>| shape=None| min=3| max=3| mean=3.0
+k=agent_from_world| v=<class 'numpy.ndarray'>| shape=(3, 3)| min=-0.8364849231762291| max=1765.7469887350096| mean=357.7915013045343
+k=world_from_agent| v=<class 'numpy.ndarray'>| shape=(3, 3)| min=-2182.42236328125| max=681.1856079101562| mean=-166.57119727699956
+k=target_positions| v=<class 'numpy.ndarray'>| shape=(12, 2)| min=-0.1380705| max=13.069978| mean=3.488664
+k=target_yaws| v=<class 'numpy.ndarray'>| shape=(12, 1)| min=-0.018772125| max=-0.0010244846| mean=-0.010295908
+k=target_extents| v=<class 'numpy.ndarray'>| shape=(12, 2)| min=1.85| max=4.87| mean=3.36
+k=target_availabilities| v=<class 'numpy.ndarray'>| shape=(12,)| min=True| max=True| mean=1.0
+k=history_positions| v=<class 'numpy.ndarray'>| shape=(4, 2)| min=-1.0673314| max=0.0| mean=-0.13626017
+k=ohistory_yaws| v=<class 'numpy.ndarray'>| shape=(4, 1)| min=0.0| max=0.00039577484| mean=9.894371e-05
+k=history_extents| v=<class 'numpy.ndarray'>| shape=(4, 2)| min=0.0| max=4.87| mean=1.68
+k=history_availabilities| v=<class 'numpy.ndarray'>| shape=(4,)| min=False| max=True| mean=0.5
+k=centroid| v=<class 'numpy.ndarray'>| shape=(2,)| min=-2182.42236328125| max=681.1856079101562| mean=-750.6183776855469
+k=yaw| v=<class 'float'>| shape=None| min=0.9908369709172571| max=0.9908369709172571| mean=0.9908369709172571
+k=speed| v=<class 'numpy.float32'>| shape=None| min=10.699269| max=10.699269| mean=10.699269
+k=all_other_agents_history_positions| v=<class 'numpy.ndarray'>| shape=(30, 4, 2)| min=-29.838062| max=0.0| mean=-0.23825209
+k=all_other_agents_history_yaws| v=<class 'numpy.ndarray'>| shape=(30, 4, 1)| min=-0.00394845| max=0.025838137| mean=0.00018241405
+k=all_other_agents_history_extents| v=<class 'numpy.ndarray'>| shape=(30, 4, 2)| min=0.0| max=4.3913283| mean=0.033575144
+k=all_other_agents_history_availability| v=<class 'numpy.ndarray'>| shape=(30, 4)| min=False| max=True| mean=0.016666666666666666
+k=all_other_agents_future_positions| v=<class 'numpy.ndarray'>| shape=(30, 12, 2)| min=-26.540485| max=0.054913074| mean=-0.34834522
+k=all_other_agents_future_yaws| v=<class 'numpy.ndarray'>| shape=(30, 12, 1)| min=-0.00018286705| max=0.017057657| mean=0.00015321441
+k=all_other_agents_future_extents| v=<class 'numpy.ndarray'>| shape=(30, 12, 2)| min=0.0| max=1.2727729| mean=0.031160278
+k=all_other_agents_future_availability| v=<class 'numpy.ndarray'>| shape=(30, 12)| min=False| max=True| mean=0.03333333333333333
+k=all_other_agents_types| v=<class 'numpy.ndarray'>| shape=(30,)| min=0| max=3| mean=0.1
+k=agent_trajectory_polyline| v=<class 'numpy.ndarray'>| shape=(4, 3)| min=-1.0673314| max=0.00039577484| mean=-0.09080713
+k=agent_polyline_availability| v=<class 'numpy.ndarray'>| shape=(4,)| min=False| max=True| mean=0.5
+k=other_agents_polyline| v=<class 'numpy.ndarray'>| shape=(30, 4, 3)| min=-29.838062| max=0.025838137| mean=-0.15877391
+k=other_agents_polyline_availability| v=<class 'numpy.ndarray'>| shape=(30, 4)| min=False| max=True| mean=0.016666666666666666
+k=lanes| v=<class 'numpy.ndarray'>| shape=(60, 20, 3)| min=-55.801235| max=88.383064| mean=3.0213563
+k=lanes_availabilities| v=<class 'numpy.ndarray'>| shape=(60, 20)| min=False| max=True| mean=0.5733333333333334
+k=lanes_mid| v=<class 'numpy.ndarray'>| shape=(30, 20, 3)| min=-55.801117| max=87.15848| mean=4.355586
+k=lanes_mid_availabilities| v=<class 'numpy.ndarray'>| shape=(30, 20)| min=False| max=True| mean=0.5733333333333334
+k=crosswalks| v=<class 'numpy.ndarray'>| shape=(20, 20, 3)| min=-6.4895263| max=24.716822| mean=0.04972123
+k=crosswalks_availabilities| v=<class 'numpy.ndarray'>| shape=(20, 20)| min=False| max=True| mean=0.01
+k=scene_index| v=<class 'int'>| shape=None| min=0| max=0| mean=0.0
+k=host_id| v=<class 'numpy.ndarray'>| shape=(70,)| min=0| max=116| mean=10.514285714285714
+k=timestamp| v=<class 'numpy.int64'>| shape=None| min=1572643684901714926| max=1572643684901714926| mean=1.572643684901715e+18
+k=track_id| v=<class 'numpy.int64'>| shape=None| min=-1| max=-1| mean=-1.0
