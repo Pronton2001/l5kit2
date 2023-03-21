@@ -505,8 +505,6 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
     f.patches(line_width=2, color="#B53331", source=out[0]["ego"])
     f.patches(line_width=2, color="color", name="agents", source=out[0]["agents"])
 
-    
-
     # Create a list of sources to update
     # sources = [out[0]["lanes"], out[0]["crosswalks"], out[0]["ego"], out[0]["agents"]]
     # sources.extend([out[0][k] for k in trajectories_labels])
@@ -516,6 +514,10 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
         def update_chart():
             global idx1
             frame = out[idx1]
+            f.x_range.start =out[idx1]["ego"].data["center_x"][0] - 50
+            f.x_range.end =out[idx1]["ego"].data["center_x"][0] + 50
+            f.y_range.start =out[idx1]["ego"].data["center_y"][0] - 50
+            f.y_range.end =out[idx1]["ego"].data["center_y"][0] + 50
             for k, v in frame.items():
                 if k in out[0]:
                     out[0][k].data.update(v.data)
@@ -528,6 +530,10 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
         def update_chart2():
             global idx2
             frame = out[idx2]
+            f.x_range.start =out[idx2]["ego"].data["center_x"][0] - 50
+            f.x_range.end =out[idx2]["ego"].data["center_x"][0] + 50
+            f.y_range.start =out[idx2]["ego"].data["center_y"][0] - 50
+            f.y_range.end =out[idx2]["ego"].data["center_y"][0] + 50
             for k, v in frame.items():
                 if k in out[0]:
                     out[0][k].data.update(v.data)
@@ -537,3 +543,6 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
                 idx2 = 0
         doc.add_periodic_callback(update_chart2, 100)
     return f
+# TODO: 
+# [ ] change Python callback -> Js call back for smoothing
+# [ ] sync 2 demo
