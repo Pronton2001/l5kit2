@@ -367,18 +367,19 @@ class L5Env(gym.Env):
         :param action: the normalized action
         :return: the unnormalized action
         """
+        
         if self.rescale_action:
-            newAction = None
             if self.use_kinematic:
-                newAction = np.array([0,0])
+                newAction = np.array([0.0,0.0], dtype = float)
                 newAction[0] = self.kin_rescale.steer_scale * action[0]
                 newAction[1] = self.kin_rescale.acc_scale * action[1]
             else:
-                newAction = np.array([0,0,0])
-                action[0] = self.non_kin_rescale.x_mu + self.non_kin_rescale.x_scale * action[0]
-                action[1] = self.non_kin_rescale.y_mu + self.non_kin_rescale.y_scale * action[1]
-                action[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
-        return newAction
+                newAction = np.array([0.0,0.0,0.0], dtype = float)
+                newAction[0] = self.non_kin_rescale.x_mu + self.non_kin_rescale.x_scale * action[0]
+                newAction[1] = self.non_kin_rescale.y_mu + self.non_kin_rescale.y_scale * action[1]
+                newAction[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
+            return newAction
+        return action
 
     def _get_kin_rescale_params(self) -> KinematicActionRescaleParams:
         """Determine the action un-normalization parameters for the kinematic model

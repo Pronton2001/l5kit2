@@ -320,6 +320,7 @@ class L5Env2(gym.Env):
         # obs = {'image': ego_input[0]["image"]}
         obs = { 
                 'type': ego_input[0]["type"],
+                'all_other_agents_types': ego_input[0]["all_other_agents_types"],
                 'target_availabilities': ego_input[0]["target_availabilities"],
                 'agent_trajectory_polyline': ego_input[0]["agent_trajectory_polyline"],
                 'other_agents_polyline': ego_input[0]["other_agents_polyline"],
@@ -438,6 +439,7 @@ class L5Env2(gym.Env):
         self.ego_input_dict = {k: np.expand_dims(v, axis=0) for k, v in ego_input[0].items()}
         obs = { 
                 'type': ego_input[0]["type"],
+                'all_other_agents_types': ego_input[0]["all_other_agents_types"],
                 'target_availabilities': ego_input[0]["target_availabilities"],
                 'agent_trajectory_polyline': ego_input[0]["agent_trajectory_polyline"],
                 'other_agents_polyline': ego_input[0]["other_agents_polyline"],
@@ -469,18 +471,16 @@ class L5Env2(gym.Env):
         """
         if self.rescale_action:
             if self.use_kinematic:
-                newAction = np.array([0,0])
+                newAction = np.array([0.0,0.0], dtype = float)
                 newAction[0] = self.kin_rescale.steer_scale * action[0]
                 newAction[1] = self.kin_rescale.acc_scale * action[1]
             else:
-                newAction = np.array([0,0,0])
-                # newAction[0] = self.kin_rescale.steer_scale * action[0]
-                # newAction[1] = self.kin_rescale.acc_scale * action[1]
+                newAction = np.array([0.0,0.0,0.0], dtype = float)
                 newAction[0] = self.non_kin_rescale.x_mu + self.non_kin_rescale.x_scale * action[0]
                 newAction[1] = self.non_kin_rescale.y_mu + self.non_kin_rescale.y_scale * action[1]
                 newAction[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
-                # raise ValueError (str(self.non_kin_rescale.x_mu) + '|' + str(self.non_kin_rescale.x_scale) + '|' + str(action[0]) + )
-        return newAction
+            return newAction
+        return action
 
     def _get_kin_rescale_params(self) -> KinematicActionRescaleParams:
         """Determine the action un-normalization parameters for the kinematic model
