@@ -27,10 +27,9 @@ from pref_db import PrefDB
 
 
 # set env variable for data
-os.environ["L5KIT_DATA_FOLDER"] = "/media/pronton/linux_files/a100code/l5kit/l5kit_dataset/"
+os.environ["L5KIT_DATA_FOLDER"] = "/media/pronton/linux_files/a100code/l5kit/l5kit_dataset"
 dm = LocalDataManager(None)
 # get config
-cfg = load_config_data("/home/pronton/rl/l5kit/examples/RL/gym_config.yaml")
 
 ####################################################
 import gym
@@ -55,7 +54,7 @@ from bokeh.io import curdoc
 # in the L5KIT_DATA_FOLDER environment variable
 
 # get environment config
-env_config_path = '/home/pronton/rl/l5kit/examples/RL/gg colabs/gym_config.yaml'
+env_config_path = "/home/pronton/rl/rlhf-car/src/configs/gym_config_112_cpu.yaml"
 cfg = load_config_data(env_config_path)
 # Train on episodes of length 32 time steps
 train_eps_length = 32
@@ -77,7 +76,7 @@ modelA = SAC.load('/home/pronton/rl/l5kit/examples/RL/gg colabs/logs/SAC_640000_
         # }
         )
 rollout_sim_cfg = SimulationConfigGym()
-rollout_sim_cfg.num_simulation_steps = 50 + 1
+rollout_sim_cfg.num_simulation_steps = None
 rollout_env = gym.make("L5-CLE-v0", env_config_path=env_config_path, sim_cfg=rollout_sim_cfg, \
                        use_kinematic=True, train=False, return_info=True)
 
@@ -140,6 +139,7 @@ def wait_function(pref):
     t1: [(s0,a0), (s1,a1),...] , t2: [(s0,a0),(s1,a1),...] pref
     '''
     t1, t2 = traj1, traj1 #TODO: just for test, after test, change t2 to traj2
+    traj1 = []
     pref_db.append(t1, t2, pref)
     if len(pref_db) >= pref_db.maxlen:
         pref_db.save(PREFLOGDIR + str(idx + 1) + '.pkl.gz')
@@ -200,7 +200,7 @@ def PrefInterface(scene_idx):
     # v1 = visualize3(scene_idx, vis_in, button)
     print(time.time() - start_time)
     start_time = time.time()
-    human_out = zarr_to_visualizer_scene(zarr_dataset.get_scene_dataset(scene_idx), mapAPI)[:50-2]
+    human_out = zarr_to_visualizer_scene(zarr_dataset.get_scene_dataset(scene_idx), mapAPI)
     v2 = visualize4(scene_idx, human_out, doc_demo, 'right')
     # v2 = visualize3(scene_idx, human_out, button)
     print(time.time() - start_time)
@@ -213,6 +213,3 @@ def PrefInterface(scene_idx):
     # curdoc().add_root(layout) 
 
 PrefInterface(11)
-# doc1.clear()
-# doc2.clear()
-# PrefInterface(11)
