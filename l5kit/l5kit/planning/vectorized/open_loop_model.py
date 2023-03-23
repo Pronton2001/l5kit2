@@ -48,7 +48,7 @@ class VectorizedModel(nn.Module):
 
         self._global_head_dropout = global_head_dropout
 
-        self._d_local = 256
+        self._d_local = 128
         self._d_global = 256
 
         self._agent_features = ["start_x", "start_y", "yaw"]
@@ -75,9 +75,9 @@ class VectorizedModel(nn.Module):
         self.register_buffer("agent_std", torch.tensor([1.6919, 0.0365, 0.0218]))
         self.register_buffer("other_agent_std", torch.tensor([33.2631, 21.3976, 1.5490]))
 
-        self.input_embed = nn.Linear(self._vector_agent_length, self._d_local)
-        self.positional_embedding = SinusoidalPositionalEmbedding(self._d_local)
-        self.type_embedding = VectorizedEmbedding(self._d_global)
+        self.input_embed = nn.Linear(self._vector_agent_length, self._d_local) # 3, 256
+        self.positional_embedding = SinusoidalPositionalEmbedding(self._d_local) # 256
+        self.type_embedding = VectorizedEmbedding(self._d_global) # (1 + N(4) + M(8)) x 256 = 13 x 256
 
         self.disable_pos_encode = False
 
@@ -280,7 +280,7 @@ class CustomVectorizedModel(nn.Module):
 
         self._global_head_dropout = global_head_dropout
 
-        self._d_local = 256
+        self._d_local = 128
         self._d_global = 256
 
         self._agent_features = ["start_x", "start_y", "yaw"]
@@ -297,6 +297,7 @@ class CustomVectorizedModel(nn.Module):
         # num_timesteps = num_targets // num_outputs # 1
 
         # if self.normalize_targets:
+        
         #     scale = build_target_normalization(num_timesteps)
         #     if num_timesteps ==1:
         #         self.register_buffer("xy_scale", torch.tensor([[1]]))
@@ -425,7 +426,7 @@ class CustomVectorizedModel(nn.Module):
         # ==== AGENTS ====
         # batch_size x (1 + M) x seq len x self._vector_length
         agents_polys = torch.cat(
-            [data_batch["agent_trajectory_polyline"].unsqueeze(1), data_batch["other_agents_polyline"]], dim=1
+            [data_batch["agent_trajectory_polyline"].unsqueeze(1), data_batch["other_agents_polyline"]], dim=1 # stored history traj
         )
         # batch_size x (1 + M) x num vectors x self._vector_length
         agents_polys = pad_points(agents_polys, max_num_vectors)

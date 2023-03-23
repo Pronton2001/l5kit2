@@ -18,7 +18,7 @@ class VectorizedEmbedding(nn.Module):
         # Torchscript did not like enums, so we are going more primitive.
         self.polyline_types = {
             "AGENT_OF_INTEREST": 0,
-            "AGENT_NO": 1, # co the k duoc di
+            "AGENT_NO": 1, # Unknown agent
             "AGENT_CAR": 2,
             "AGENT_BIKE": 3,
             "AGENT_PEDESTRIAN": 4,
@@ -50,7 +50,7 @@ class VectorizedEmbedding(nn.Module):
         """
 
         with torch.no_grad():
-            polyline_types = data_batch["type"]
+            polyline_types = data_batch["type"] # [3,
             other_agents_types = data_batch["all_other_agents_types"]
 
             other_agents_len = other_agents_types.shape[1]
@@ -65,8 +65,8 @@ class VectorizedEmbedding(nn.Module):
             lanes_bdry_start_idx = crosswalks_start_idx + crosswalks_len
 
             indices = torch.full(
-                (len(polyline_types), total_len),
-                fill_value=self.polyline_types["AGENT_NO"],
+                (len(polyline_types), total_len), # (1, 1 + N + M) N: # agents, M: # of lane
+                fill_value=self.polyline_types["AGENT_NO"], #fill_value= 1, 
                 dtype=torch.long,
                 device=polyline_types.device,
             )
