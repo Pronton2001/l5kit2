@@ -11,7 +11,7 @@ class DataManager(ABC):
     @abstractmethod
     def require(self, key: str) -> str:
         pass
-os.environ["L5KIT_DATA_FOLDER"] = "/home/pronton/rl/l5kit_dataset/"
+# os.environ["L5KIT_DATA_FOLDER"] = "/home/pronton/rl/l5kit_dataset/"
 
 
 class LocalDataManager(DataManager):

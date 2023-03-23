@@ -214,7 +214,7 @@ class VectorizedModel(nn.Module):
             agents_polys, map_polys, agents_availabilities, map_availabilities, type_embedding, lane_bdry_len
         )
         ####################### Tri Huynh #######################
-        if self._num_targets in [1, 72]:
+        if self._num_targets in [1, 72]: # 12 x 3 x 2 (12 mean, variance each (x,y,yaw))
                 return outputs
 
         # calculate loss or return predicted position for inference

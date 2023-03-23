@@ -19,12 +19,12 @@ from bokeh.models import Button
 
 
 import os
-
+l5kit_path = '/workspace/source/l5kit2/'
 # set env variable for data
-os.environ["L5KIT_DATA_FOLDER"] = "/home/pronton/rl/l5kit_dataset/"
+os.environ["L5KIT_DATA_FOLDER"] = "/workspace/datasets"
 dm = LocalDataManager(None)
 # get config
-cfg = load_config_data("/home/pronton/rl/l5kit/examples/RL/gym_config.yaml")
+cfg = load_config_data(l5kit_path + "examples/RL/gym_config.yaml")
 
 ####################################################
 import gym
@@ -48,33 +48,38 @@ from bokeh.io import output_notebook, show
 # in the L5KIT_DATA_FOLDER environment variable
 
 # get environment config
-env_config_path = '/home/pronton/rl/l5kit/examples/RL/gg colabs/gym_config.yaml'
+env_config_path = l5kit_path + 'examples/RL/gg colabs/gym_config.yaml'
 cfg = load_config_data(env_config_path)
-# Train on episodes of length 32 time steps
-train_eps_length = 32
-train_envs = 4
+
+
+# val_envs = 1
+# # make train env
+# val_sim_cfg = SimulationConfigGym()
+# val_sim_cfg.num_simulation_steps = None
+# env_kwargs = {'env_config_path': env_config_path, 'use_kinematic': True, 'sim_cfg': val_sim_cfg}
+# env = make_vec_env("L5-CLE-v0", env_kwargs=env_kwargs, n_envs=val_envs,
+#                    vec_env_cls=SubprocVecEnv, vec_env_kwargs={"start_method": "fork"})
 
 # make train env
+train_eps_length = 32
 train_sim_cfg = SimulationConfigGym()
 train_sim_cfg.num_simulation_steps = train_eps_length + 1
 env_kwargs = {'env_config_path': env_config_path, 'use_kinematic': True, 'sim_cfg': train_sim_cfg}
-env = make_vec_env("L5-CLE-v0", env_kwargs=env_kwargs, n_envs=train_envs,
+env = make_vec_env("L5-CLE-v0", env_kwargs=env_kwargs, n_envs=1,
                    vec_env_cls=SubprocVecEnv, vec_env_kwargs={"start_method": "fork"})
-
-# make train env
-modelA = SAC.load('/home/pronton/rl/l5kit/examples/RL/gg colabs/logs/SAC_640000_steps.zip', env = env
-        #          , custom_objects = {
-        #     "learning_rate": 0.0,
-        #     "lr_schedule": lambda _: 0.0,
-        #     "clip_range": lambda _: 0.0,
-        # }
+modelA = SAC.load('/workspace/datasets/logs/06-01-2023_15-15-53/SAC_6000000_steps.zip', env = env
+                  , custom_objects = {
+            "learning_rate": 0.0,
+            "lr_schedule": lambda _: 0.0,
+            "clip_range": lambda _: 0.0,
+        }
         )
-modelB = PPO.load('/home/pronton/rl/l5kit/examples/RL/gg colabs/logs/PPO_5410000_steps.zip', env = env
-        #          , custom_objects = {
-        #     "learning_rate": 0.0,
-        #     "lr_schedule": lambda _: 0.0,
-        #     "clip_range": lambda _: 0.0,
-        # }
+modelB = PPO.load('/workspace/datasets/logs/05-01-2023_15-12-56/PPO_15790000_steps.zip', env = env
+                 , custom_objects = {
+            "learning_rate": 0.0,
+            "lr_schedule": lambda _: 0.0,
+            "clip_range": lambda _: 0.0,
+        }
         )
 rollout_sim_cfg = SimulationConfigGym()
 rollout_sim_cfg.num_simulation_steps = 10

@@ -507,8 +507,6 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
     f.patches(line_width=2, color="#B53331", source=out[0]["ego"])
     f.patches(line_width=2, color="color", name="agents", source=out[0]["agents"])
 
-    
-
     # Create a list of sources to update
     # sources = [out[0]["lanes"], out[0]["crosswalks"], out[0]["ego"], out[0]["agents"]]
     # sources.extend([out[0][k] for k in trajectories_labels])
