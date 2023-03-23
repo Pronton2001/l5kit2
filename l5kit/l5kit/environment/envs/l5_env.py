@@ -359,6 +359,26 @@ class L5Env(gym.Env):
         # obs = ego_input[0]["image"]
         return obs
 
+    # def _rescale_action(self, action: np.ndarray) -> np.ndarray:
+    #     """Rescale the input action back to the un-normalized action space. PPO and related algorithms work well
+    #     with normalized action spaces. The environment receives a normalized action and we un-normalize it back to
+    #     the original action space for environment updates.
+
+    #     :param action: the normalized action
+    #     :return: the unnormalized action
+    #     """
+    #     if self.rescale_action:
+    #         newAction = None
+    #         if self.use_kinematic:
+    #             newAction = np.array([0,0])
+    #             newAction[0] = self.kin_rescale.steer_scale * action[0]
+    #             newAction[1] = self.kin_rescale.acc_scale * action[1]
+    #         else:
+    #             newAction = np.array([0,0,0])
+    #             action[0] = self.non_kin_rescale.x_mu + self.non_kin_rescale.x_scale * action[0]
+    #             action[1] = self.non_kin_rescale.y_mu + self.non_kin_rescale.y_scale * action[1]
+    #             action[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
+    #     return newAction
     def _rescale_action(self, action: np.ndarray) -> np.ndarray:
         """Rescale the input action back to the un-normalized action space. PPO and related algorithms work well
         with normalized action spaces. The environment receives a normalized action and we un-normalize it back to
@@ -380,7 +400,6 @@ class L5Env(gym.Env):
                 newAction[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
             return newAction
         return action
-
     def _get_kin_rescale_params(self) -> KinematicActionRescaleParams:
         """Determine the action un-normalization parameters for the kinematic model
         from the current dataset in the L5Kit environment.
