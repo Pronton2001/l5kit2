@@ -524,12 +524,12 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
                 if k in out[0]:
                     out[0][k].data.update(v.data)
 
-            print('idx1', idx1)
+            # print('idx1', idx1)
             idx1 +=1
             if idx1 >= len(frames) - 1:
                 idx1 = 0
         # doc.session_context.remove_periodic_callbacks()
-        doc.add_periodic_callback(update_chart, 100)
+        doc.add_periodic_callback(update_chart, 10)
     else: # right
         def update_chart2():
             global idx2
@@ -543,11 +543,11 @@ def visualize4(scene_index: int, frames: List[FrameVisualization], doc, trajecto
                     out[0][k].data.update(v.data)
 
             idx2 +=1
-            print('---------idx2', idx2)
+            # print('---------idx2', idx2)
             if idx2 >= len(frames) - 1:
                 idx2 = 0
         # doc.session_context.remove_periodic_callbacks()
-        doc.add_periodic_callback(update_chart2, 100)
+        doc.add_periodic_callback(update_chart2, 10)
     return f
 # TODO: 
 # [ ] change Python callback -> Js call back for smoothing

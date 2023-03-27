@@ -11,6 +11,8 @@ from l5kit.configs import load_config_data
 from l5kit.data import LocalDataManager, ChunkedDataset
 
 from l5kit.dataset import EgoDatasetVectorized
+from l5kit.dataset.ego import EgoDataset
+from l5kit.rasterization.rasterizer_builder import build_rasterizer
 from l5kit.vectorization.vectorizer_builder import build_vectorizer
 
 from l5kit.simulation.dataset import SimulationConfig
@@ -27,10 +29,9 @@ from pref_db import PrefDB
 
 
 # set env variable for data
-os.environ["L5KIT_DATA_FOLDER"] = "/media/pronton/linux_files/a100code/l5kit/l5kit_dataset/"
+os.environ["L5KIT_DATA_FOLDER"] = "/media/pronton/linux_files/a100code/l5kit/l5kit_dataset"
 dm = LocalDataManager(None)
 # get config
-cfg = load_config_data("/home/pronton/rl/l5kit/examples/RL/gym_config.yaml")
 
 ####################################################
 import gym
@@ -55,7 +56,7 @@ from bokeh.io import curdoc
 # in the L5KIT_DATA_FOLDER environment variable
 
 # get environment config
-env_config_path = '/home/pronton/rl/l5kit/examples/RL/gg colabs/gym_config.yaml'
+env_config_path = "/home/pronton/rl/rlhf-car/src/configs/gym_config_112_cpu.yaml"
 cfg = load_config_data(env_config_path)
 # Train on episodes of length 32 time steps
 train_eps_length = 32
@@ -77,7 +78,7 @@ modelA = SAC.load('/home/pronton/rl/l5kit/examples/RL/gg colabs/logs/SAC_640000_
         # }
         )
 rollout_sim_cfg = SimulationConfigGym()
-rollout_sim_cfg.num_simulation_steps = 50 + 1
+rollout_sim_cfg.num_simulation_steps = None
 rollout_env = gym.make("L5-CLE-v0", env_config_path=env_config_path, sim_cfg=rollout_sim_cfg, \
                        use_kinematic=True, train=False, return_info=True)
 
@@ -109,10 +110,22 @@ def rollout_episode(model, env, idx = 0):
     sim_out = info["sim_outs"][0]
     return sim_out
 
-sim_outs =[]
+rast = build_rasterizer(cfg, dm)
 dataset_path = dm.require(cfg["val_data_loader"]["key"])
-zarr_dataset = ChunkedDataset(dataset_path) #TODO: should load 1 time only
-zarr_dataset.open()
+zarr_dataset = ChunkedDataset(dataset_path).open() #TODO: should load 1 time only
+
+dataset = EgoDataset(cfg, zarr_dataset, rast)
+scene_idx = 0
+indexes = dataset.get_scene_indices(scene_idx)
+images = []
+
+
+for idx in indexes:
+    data = dataset[idx]
+    im = data["image"].transpose(1, 2, 0) # size, size, num_channels
+    plt.ims
+    # im = dataset.rasterizer.to_rgb(im)
+    # plt.imshow(im)
 
 # define the callback function
 def button_callback(button):
@@ -134,12 +147,13 @@ PREFLOGDIR = 'src/pref/preferences/'
 idx = 0
 # define the wait function
 def wait_function(pref):
-    global pref_db, idx
+    global pref_db, idx, traj1
     '''TODO: this function store pref.json (disk storage)
     pref.json:
     t1: [(s0,a0), (s1,a1),...] , t2: [(s0,a0),(s1,a1),...] pref
     '''
     t1, t2 = traj1, traj1 #TODO: just for test, after test, change t2 to traj2
+    traj1 = []
     pref_db.append(t1, t2, pref)
     if len(pref_db) >= pref_db.maxlen:
         pref_db.save(PREFLOGDIR + str(idx + 1) + '.pkl.gz')
@@ -200,19 +214,13 @@ def PrefInterface(scene_idx):
     # v1 = visualize3(scene_idx, vis_in, button)
     print(time.time() - start_time)
     start_time = time.time()
-    human_out = zarr_to_visualizer_scene(zarr_dataset.get_scene_dataset(scene_idx), mapAPI)[:50-2]
+    human_out = zarr_to_visualizer_scene(zarr_dataset.get_scene_dataset(scene_idx), mapAPI)
     v2 = visualize4(scene_idx, human_out, doc_demo, 'right')
     # v2 = visualize3(scene_idx, human_out, button)
     print(time.time() - start_time)
     # layout1 = v1
     doc_demo.add_root(row(v1, v2))
-    # layout2 = v2
-    # doc2.add_root(column(v2))
     doc_buttons.add_root(pref_buttons)
-    # layout = row(doc1.roots + doc2.roots) # a trick to show 2 diff doc horizontally
-    # curdoc().add_root(layout) 
+    
 
-PrefInterface(11)
-# doc1.clear()
-# doc2.clear()
-# PrefInterface(11)
+PrefInterface(0)
