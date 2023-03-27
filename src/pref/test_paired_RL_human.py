@@ -11,6 +11,8 @@ from l5kit.configs import load_config_data
 from l5kit.data import LocalDataManager, ChunkedDataset
 
 from l5kit.dataset import EgoDatasetVectorized
+from l5kit.dataset.ego import EgoDataset
+from l5kit.rasterization.rasterizer_builder import build_rasterizer
 from l5kit.vectorization.vectorizer_builder import build_vectorizer
 
 from l5kit.simulation.dataset import SimulationConfig
@@ -108,10 +110,22 @@ def rollout_episode(model, env, idx = 0):
     sim_out = info["sim_outs"][0]
     return sim_out
 
-sim_outs =[]
+rast = build_rasterizer(cfg, dm)
 dataset_path = dm.require(cfg["val_data_loader"]["key"])
-zarr_dataset = ChunkedDataset(dataset_path) #TODO: should load 1 time only
-zarr_dataset.open()
+zarr_dataset = ChunkedDataset(dataset_path).open() #TODO: should load 1 time only
+
+dataset = EgoDataset(cfg, zarr_dataset, rast)
+scene_idx = 0
+indexes = dataset.get_scene_indices(scene_idx)
+images = []
+
+
+for idx in indexes:
+    data = dataset[idx]
+    im = data["image"].transpose(1, 2, 0) # size, size, num_channels
+    plt.ims
+    # im = dataset.rasterizer.to_rgb(im)
+    # plt.imshow(im)
 
 # define the callback function
 def button_callback(button):
@@ -133,7 +147,7 @@ PREFLOGDIR = 'src/pref/preferences/'
 idx = 0
 # define the wait function
 def wait_function(pref):
-    global pref_db, idx
+    global pref_db, idx, traj1
     '''TODO: this function store pref.json (disk storage)
     pref.json:
     t1: [(s0,a0), (s1,a1),...] , t2: [(s0,a0),(s1,a1),...] pref
@@ -206,10 +220,7 @@ def PrefInterface(scene_idx):
     print(time.time() - start_time)
     # layout1 = v1
     doc_demo.add_root(row(v1, v2))
-    # layout2 = v2
-    # doc2.add_root(column(v2))
     doc_buttons.add_root(pref_buttons)
-    # layout = row(doc1.roots + doc2.roots) # a trick to show 2 diff doc horizontally
-    # curdoc().add_root(layout) 
+    
 
-PrefInterface(11)
+PrefInterface(0)
