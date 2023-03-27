@@ -145,7 +145,7 @@ class DisplacementErrorL2Metric(DisplacementErrorMetric):
         super().__init__(error_functions.l2_error)
 
 
-class DistanceToRefTrajectoryMetric(SupportsMetricCompute):
+class DistanceToRefTrajectoryMetric(SupportsMetricCompute): #off the road metric -> should used as reward
     """Distance to reference trajectory metric. This metric will compute
     the distance from the predicted centroid to the closest waypoint
     in the reference trajectory.

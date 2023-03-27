@@ -17,7 +17,7 @@ from l5kit.cle.metrics import (CollisionFrontMetric, CollisionRearMetric, Collis
 from l5kit.cle.validators import RangeValidator, ValidationCountingAggregator
 
 from l5kit.visualization.visualizer.zarr_utils import simulation_out_to_visualizer_scene
-from l5kit.visualization.visualizer.visualizer import visualize, visualize2, visualize3, visualize4
+from l5kit.visualization.visualizer.visualizer import visualize, visualize2, visualize3, visualize4, visualize5
 from bokeh.io import output_notebook, show
 from l5kit.data import MapAPI
 from bokeh.models import Button
@@ -26,7 +26,7 @@ from collections import defaultdict
 import os
 from stable_baselines3 import SAC
 # set env variable for data
-os.environ["L5KIT_DATA_FOLDER"] = "/home/pronton/rl/l5kit_dataset/"
+os.environ["L5KIT_DATA_FOLDER"] = "/media/pronton/linux_files/a100code/l5kit/l5kit_dataset/"
 dm = LocalDataManager(None)
 # get config
 cfg = load_config_data("/home/pronton/rl/l5kit/examples/urban_driver/config.yaml")
@@ -43,7 +43,7 @@ vectorizer = build_vectorizer(cfg, dm)
 eval_dataset = EgoDatasetVectorized(cfg, eval_zarr, vectorizer)
 print(eval_dataset)
 num_scenes_to_unroll = 2
-num_simulation_steps = 5
+num_simulation_steps = 10
 # ==== DEFINE CLOSED-LOOP SIMULATION
 sim_cfg = SimulationConfig(use_ego_gt=False, use_agents_gt=True, disable_new_agents=True,
                            distance_th_far=500, distance_th_close=50, num_simulation_steps=num_simulation_steps,
@@ -57,16 +57,19 @@ mapAPI = MapAPI.from_cfg(dm, cfg)
 from bokeh.layouts import column, LayoutDOM, row, gridplot
 from bokeh.io import curdoc
 
+button = Button(label="Play", button_type="success")
 ############################################ 2 scene
 doc = curdoc()
 # for sim_out in sim_outs[:1]: # for each scene
 sim_out = sim_outs[0]
 vis_in = simulation_out_to_visualizer_scene(sim_out, mapAPI)
-v1 = visualize4(sim_out.scene_id, vis_in, doc, 'left')
+# v1 = visualize4(sim_out.scene_id, vis_in, doc, 'left')
+v1 = visualize3(sim_out.scene_id, vis_in, button)
 
 sim_out = sim_outs[1]
 vis_in = simulation_out_to_visualizer_scene(sim_out, mapAPI)
-v2 = visualize4(sim_out.scene_id, vis_in, doc, 'right')
+# v2 = visualize3(sim_out.scene_id, vis_in, doc, 'right')
+v2 = visualize3(sim_out.scene_id, vis_in, button)
 
 ############################################ button
 
@@ -99,7 +102,9 @@ same_button.on_click(lambda: button_callback(same_button))
 
 pref = row(left_button, column(same_button, cannot_tell_button), right_button)
 
-doc.add_root(column(row(v1,v2), pref))
+doc.add_root(column(button,row(v1,v2), pref))
+# show(column(row(v1,v2), pref))
+# show(column(row(v1,v2)))
 # doc2.add_root(v2)
 
 # show(fs)

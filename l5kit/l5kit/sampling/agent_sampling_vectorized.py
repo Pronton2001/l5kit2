@@ -82,7 +82,7 @@ def generate_agent_sample_vectorized(
         agent_centroid_m = cur_frame["ego_translation"][:2]
         agent_yaw_rad = rotation33_as_yaw(cur_frame["ego_rotation"])
         agent_extent_m = np.asarray((EGO_EXTENT_LENGTH, EGO_EXTENT_WIDTH, EGO_EXTENT_HEIGHT))
-        agent_type_idx = PERCEPTION_LABEL_TO_INDEX["PERCEPTION_LABEL_CAR"]
+        agent_type_idx = PERCEPTION_LABEL_TO_INDEX["PERCEPTION_LABEL_CAR"] # 3
     else:
         # this will raise IndexError if the agent is not in the frame or under agent-threshold
         # this is a strict error, we cannot recover from this situation
