@@ -66,10 +66,7 @@ class VectorizedModel(nn.Module):
 
         if self.normalize_targets:
             scale = build_target_normalization(num_timesteps)
-            if num_timesteps ==1:
-                self.register_buffer("xy_scale", torch.tensor([[1]]))
-            else:
-                self.register_buffer("xy_scale", scale)
+            self.register_buffer("xy_scale", scale)
 
         # normalization buffers
         self.register_buffer("agent_std", torch.tensor([1.6919, 0.0365, 0.0218]))
@@ -213,33 +210,30 @@ class VectorizedModel(nn.Module):
         outputs, attns = self.model_call(
             agents_polys, map_polys, agents_availabilities, map_availabilities, type_embedding, lane_bdry_len
         )
-        ####################### Tri Huynh #######################
-        if self._num_targets in [1, 72]: # 12 x 3 x 2 (12 mean, variance each (x,y,yaw))
-                return outputs
 
         # calculate loss or return predicted position for inference
-        if self.training:
-            if self.criterion is None:
-                raise NotImplementedError("Loss function is undefined.")
+        # if self.training:
+        #     if self.criterion is None:
+        #         raise NotImplementedError("Loss function is undefined.")
 
-            xy = data_batch["target_positions"]
-            yaw = data_batch["target_yaws"]
-            if self.normalize_targets:
-                xy /= self.xy_scale
-            targets = torch.cat((xy, yaw), dim=-1)
-            target_weights = data_batch["target_availabilities"].unsqueeze(-1) * self.weights_scaling
-            loss = torch.mean(self.criterion(outputs, targets) * target_weights)
-            train_dict = {"loss": loss}
-            return train_dict
-        else:
-            pred_positions, pred_yaws = outputs[..., :2], outputs[..., 2:3]
-            if self.normalize_targets:
-                pred_positions *= self.xy_scale
+        #     xy = data_batch["target_positions"]
+        #     yaw = data_batch["target_yaws"]
+        #     if self.normalize_targets:
+        #         xy /= self.xy_scale
+        #     targets = torch.cat((xy, yaw), dim=-1)
+        #     target_weights = data_batch["target_availabilities"].unsqueeze(-1) * self.weights_scaling
+        #     loss = torch.mean(self.criterion(outputs, targets) * target_weights)
+        #     train_dict = {"loss": loss}
+        #     return train_dict
+        # else:
+        pred_positions, pred_yaws = outputs[..., :2], outputs[..., 2:3]
+        if self.normalize_targets:
+            pred_positions *= self.xy_scale
 
-            eval_dict = {"positions": pred_positions, "yaws": pred_yaws}
-            if attns is not None:
-                eval_dict["attention_weights"] = attns
-            return eval_dict
+        eval_dict = {"positions": pred_positions, "yaws": pred_yaws}
+        if attns is not None:
+            eval_dict["attention_weights"] = attns
+        return eval_dict
 
 class CustomVectorizedModel(nn.Module):
     """ Vectorized planning model.
