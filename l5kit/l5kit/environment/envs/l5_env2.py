@@ -151,7 +151,7 @@ class L5Env2(gym.Env):
         num_future_states = cfg['model_params']['future_num_frames']
         num_future_states = 1
         # Continuous Action Space: gym.spaces.Box (X, Y, Yaw * number of future states)
-        self.action_space = spaces.Box(low=-1, high=1, shape=(num_future_states*3,))
+        self.action_space = spaces.Box(low=np.array([-4.78996407367,-0.08430253761, -0.04280026698]), high=np.array([5.95755327367, 0.08809601841, 0.04151081038]), shape=(num_future_states*3,))
 
         # Observation Space: gym.spaces.Dict (image: [n_channels, raster_size, raster_size])
         # obs_shape = (n_channels, raster_size, raster_size)
@@ -159,8 +159,8 @@ class L5Env2(gym.Env):
 
         # self.observation_space = spaces.Dict({'image': spaces.Box(low=0, high=1, shape=obs_shape, dtype=np.float32)})
 
-        history_num_frames_ego = 1
-        history_num_frames_agents = 3
+        history_num_frames_ego = cfg["model_params"]["history_num_frames_ego"]
+        history_num_frames_agents = cfg["model_params"]["history_num_frames_agents"]
         max_history_num_frames = max(history_num_frames_ego, history_num_frames_agents)
         num_agents = cfg["data_generation_params"]["other_agents_num"]
         MAX_LANES = cfg['data_generation_params']['lane_params']["max_num_lanes"]
@@ -189,27 +189,28 @@ class L5Env2(gym.Env):
             # "other_agents_polyline_availability": other_agents_polyline_availability.astype(np.bool),
 # @@@@@@@@@@
 
-            'type': spaces.Discrete(13),
-            'all_other_agents_types': spaces.MultiDiscrete(nvec=[13]*num_agents),
-            'agent_trajectory_polyline': spaces.Box(low=-5, high=5, shape= (max_history_num_frames + 1, 3), dtype=np.float32),
+            'type': spaces.Discrete(17),
+            'all_other_agents_types': spaces.MultiDiscrete(nvec=[17]*num_agents),
+            'agent_trajectory_polyline': spaces.Box(low=-1e9, high=1e9, shape= (max_history_num_frames + 1, 3), dtype=np.float32),
             'agent_polyline_availability' :  spaces.MultiBinary(n= (max_history_num_frames + 1,)),
 
-            'target_yaws': spaces.Box(low=-2*math.pi, high=2*math.pi, shape= (cfg["model_params"]["future_num_frames"], 1), dtype=np.float32), 
-            'target_positions': spaces.Box(low=-5, high=5, shape= (cfg["model_params"]["future_num_frames"], 2), dtype=np.float32), 
-            'target_availabilities': spaces.MultiBinary(n=(cfg["model_params"]["future_num_frames"],)),
-
-            'other_agents_polyline': spaces.Box(low=0, high=1, shape= (num_agents, max_history_num_frames + 1, 3), dtype=np.float32),
+      
+            'other_agents_polyline': spaces.Box(low=-1e9, high=1e9, shape= (num_agents, max_history_num_frames + 1, 3), dtype=np.float32),
             'other_agents_polyline_availability': spaces.MultiBinary(n= (num_agents, max_history_num_frames + 1,)),
 
-            'lanes': spaces.Box(low=0, high=1, shape= (MAX_LANES * 2, MAX_POINTS_LANES, 3), dtype=np.float32),
-            'lanes_mid':  spaces.Box(low=0, high=1, shape= (MAX_LANES, MAX_POINTS_LANES, 3), dtype=np.float32),
+            'lanes_mid':  spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES, MAX_POINTS_LANES, 3), dtype=np.float32),
             'lanes_mid_availabilities': spaces.MultiBinary(n= (MAX_LANES, MAX_POINTS_LANES)),
-            'crosswalks':spaces.Box(low=0, high=1, shape= (MAX_CROSSWALKS, MAX_POINTS_CW, 3), dtype=np.float32),
+            'lanes': spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES * 2, MAX_POINTS_LANES, 3), dtype=np.float32),
+            'crosswalks':spaces.Box(low=-1e9, high=1e9, shape= (MAX_CROSSWALKS, MAX_POINTS_CW, 3), dtype=np.float32),
             'crosswalks_availabilities': spaces.MultiBinary(n= (MAX_CROSSWALKS, MAX_POINTS_CW)), 
 
-            'all_other_agents_future_positions': spaces.Box(low=-1, high=1, shape= (num_agents, cfg["model_params"]["future_num_frames"], 2), dtype=np.float32), 
-            'all_other_agents_future_availability': spaces.MultiBinary(n= (num_agents, cfg["model_params"]["future_num_frames"],)), 
-            'all_other_agents_future_yaws':  spaces.Box(low=0, high=1, shape= (num_agents, cfg["model_params"]["future_num_frames"], 1), dtype=np.float32), 
+            # 'target_yaws': spaces.Box(low=-2*math.pi, high=2*math.pi, shape= (cfg["model_params"]["future_num_frames"], 1), dtype=np.float32), 
+            # 'target_positions': spaces.Box(low=-5, high=5, shape= (cfg["model_params"]["future_num_frames"], 2), dtype=np.float32), 
+            # 'target_availabilities': spaces.MultiBinary(n=(cfg["model_params"]["future_num_frames"],)),
+
+            # 'all_other_agents_future_positions': spaces.Box(low=-1, high=1, shape= (num_agents, cfg["model_params"]["future_num_frames"], 2), dtype=np.float32), 
+            # 'all_other_agents_future_availability': spaces.MultiBinary(n= (num_agents, cfg["model_params"]["future_num_frames"],)), 
+            # 'all_other_agents_future_yaws':  spaces.Box(low=0, high=1, shape= (num_agents, cfg["model_params"]["future_num_frames"], 1), dtype=np.float32), 
             # 'history_positions':  spaces.Box(low=-1, high=1, shape=(max_history_num_frames + 1, 2), dtype=np.float32),
             # 'history_yaws': spaces.Box(low=-1, high=1, shape=(max_history_num_frames + 1, 1), dtype=np.float32),
             # 'history_availabilities': spaces.MultiBinary(n= (num_agents, max_history_num_frames + 1,)),
@@ -321,23 +322,30 @@ class L5Env2(gym.Env):
         # raise ValueError(ego_input[0]['lanes'])
         # obs = {'image': ego_input[0]["image"]}
         obs = { 
-                'type': ego_input[0]["type"],
+                'type':ego_input[0]["type"],
                 'all_other_agents_types': ego_input[0]["all_other_agents_types"],
-                'target_availabilities': ego_input[0]["target_availabilities"],
+
+                'agent_polyline_availability' :  ego_input[0]["agent_polyline_availability"],
                 'agent_trajectory_polyline': ego_input[0]["agent_trajectory_polyline"],
+
                 'other_agents_polyline': ego_input[0]["other_agents_polyline"],
                 'other_agents_polyline_availability': ego_input[0]["other_agents_polyline_availability"],
-                'agent_polyline_availability' :  ego_input[0]["agent_polyline_availability"],
-                'lanes_mid': ego_input[0]["lanes_mid"],
-                'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+
                 'crosswalks':ego_input[0]["crosswalks"],
                 'crosswalks_availabilities':ego_input[0]["crosswalks_availabilities"],
+
                 'lanes':ego_input[0]["lanes"],
-                'target_positions': ego_input[0]["target_positions"],
-                'all_other_agents_future_positions': ego_input[0]["all_other_agents_future_positions"],
-                'target_yaws': ego_input[0]["target_yaws"],
-                'all_other_agents_future_availability':ego_input[0]["all_other_agents_future_availability"],
-                'all_other_agents_future_yaws':ego_input[0]["all_other_agents_future_yaws"],}
+                'lanes_mid': ego_input[0]["lanes_mid"],
+                'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+
+                # 'target_positions': ego_input[0]["target_positions"],
+                # 'target_yaws': ego_input[0]["target_yaws"],
+                # 'target_availabilities': ego_input[0]["target_availabilities"],
+
+                # 'all_other_agents_future_positions': ego_input[0]["all_other_agents_future_positions"],
+                # 'all_other_agents_future_availability':ego_input[0]["all_other_agents_future_availability"],
+                # 'all_other_agents_future_yaws':ego_input[0]["all_other_agents_future_yaws"],
+                }
         # obs = ego_input[0]["image"]
         # raise ValueError(obs)
         return obs
@@ -376,8 +384,11 @@ class L5Env2(gym.Env):
 
         # EGO
         if not self.sim_cfg.use_ego_gt:
+            # print('l5env2 action:', action)
             action = self._rescale_action(action)
+            # print('l5env2 rescaled action:', action)
             ego_output = self._convert_action_to_ego_output(action)
+            # print('l5env2 output dict:', ego_output)
             self.ego_output_dict = ego_output
 
             if self.cle:
@@ -440,23 +451,46 @@ class L5Env2(gym.Env):
         ego_input = self.sim_dataset.rasterise_frame_batch(frame_index)
         self.ego_input_dict = {k: np.expand_dims(v, axis=0) for k, v in ego_input[0].items()}
         obs = { 
-                'type': ego_input[0]["type"],
+                'type':ego_input[0]["type"],
                 'all_other_agents_types': ego_input[0]["all_other_agents_types"],
-                'target_availabilities': ego_input[0]["target_availabilities"],
+
+                'agent_polyline_availability' :  ego_input[0]["agent_polyline_availability"],
                 'agent_trajectory_polyline': ego_input[0]["agent_trajectory_polyline"],
+
                 'other_agents_polyline': ego_input[0]["other_agents_polyline"],
                 'other_agents_polyline_availability': ego_input[0]["other_agents_polyline_availability"],
-                'agent_polyline_availability' :  ego_input[0]["agent_polyline_availability"],
-                'lanes_mid': ego_input[0]["lanes_mid"],
-                'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+
                 'crosswalks':ego_input[0]["crosswalks"],
                 'crosswalks_availabilities':ego_input[0]["crosswalks_availabilities"],
+
                 'lanes':ego_input[0]["lanes"],
-                'target_positions': ego_input[0]["target_positions"],
-                'all_other_agents_future_positions': ego_input[0]["all_other_agents_future_positions"],
-                'target_yaws': ego_input[0]["target_yaws"],
-                'all_other_agents_future_availability':ego_input[0]["all_other_agents_future_availability"],
-                'all_other_agents_future_yaws':ego_input[0]["all_other_agents_future_yaws"],}
+                'lanes_mid': ego_input[0]["lanes_mid"],
+                'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+
+                # 'type': torch.as_tensor(ego_input[0]["type"]).to(self.device),
+                # 'all_other_agents_types': torch.as_tensor(ego_input[0]["all_other_agents_types"]).to(self.device),
+
+                # 'agent_polyline_availability' :  torch.as_tensor(ego_input[0]["agent_polyline_availability"]).to(self.device),
+                # 'agent_trajectory_polyline': torch.as_tensor(ego_input[0]["agent_trajectory_polyline"]).to(self.device),
+
+                # 'other_agents_polyline': torch.as_tensor(ego_input[0]["other_agents_polyline"]).to(self.device),
+                # 'other_agents_polyline_availability': torch.as_tensor(ego_input[0]["other_agents_polyline_availability"]).to(self.device),
+
+                # 'crosswalks':torch.as_tensor(ego_input[0]["crosswalks"]).to(self.device),
+                # 'crosswalks_availabilities':torch.as_tensor(ego_input[0]["crosswalks_availabilities"]).to(self.device),
+
+                # 'lanes':torch.as_tensor(ego_input[0]["lanes"]).to(self.device),
+                # 'lanes_mid': torch.as_tensor(ego_input[0]["lanes_mid"]).to(self.device),
+                # 'lanes_mid_availabilities':torch.as_tensor(ego_input[0]["lanes_mid_availabilities"]).to(self.device),
+
+                # 'target_availabilities': ego_input[0]["target_availabilities"],
+                # 'target_positions': ego_input[0]["target_positions"],
+                # 'target_yaws': ego_input[0]["target_yaws"],
+
+                # 'all_other_agents_future_positions': ego_input[0]["all_other_agents_future_positions"],
+                # 'all_other_agents_future_availability':ego_input[0]["all_other_agents_future_availability"],
+                # 'all_other_agents_future_yaws':ego_input[0]["all_other_agents_future_yaws"],
+                }
         # raise ValueError(obs)
         # obs = {"image": ego_input[0]["image"]}
 
@@ -471,18 +505,17 @@ class L5Env2(gym.Env):
         :param action: the normalized action
         :return: the unnormalized action
         """
+        newAction = action.copy()
         if self.rescale_action:
             if self.use_kinematic:
-                newAction = np.array([0.0,0.0], dtype = float)
                 newAction[0] = self.kin_rescale.steer_scale * action[0]
                 newAction[1] = self.kin_rescale.acc_scale * action[1]
             else:
-                newAction = np.array([0.0,0.0,0.0], dtype = float)
                 newAction[0] = self.non_kin_rescale.x_mu + self.non_kin_rescale.x_scale * action[0]
                 newAction[1] = self.non_kin_rescale.y_mu + self.non_kin_rescale.y_scale * action[1]
                 newAction[2] = self.non_kin_rescale.yaw_mu + self.non_kin_rescale.yaw_scale * action[2]
             return newAction
-        return action
+        return newAction
 
     def _get_kin_rescale_params(self) -> KinematicActionRescaleParams:
         """Determine the action un-normalization parameters for the kinematic model
