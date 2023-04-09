@@ -17,7 +17,8 @@ def SimpleCNN_GN(num_input_channels: int, features_dim: int) -> nn.Module:
         nn.ReLU(),
         nn.MaxPool2d(kernel_size=2, stride=2),
         nn.Flatten(),
-        nn.Linear(in_features=1568, out_features=features_dim),
+        # nn.Linear(in_features=1568, out_features=features_dim),
+        nn.Linear(in_features=6272, out_features=features_dim), # for 5x224x224 image
     )
 
     return model

@@ -23,6 +23,8 @@ from l5kit.vectorization.vectorizer_builder import build_vectorizer
 from l5kit.simulation.dataset import SimulationConfig, SimulationDataset
 from l5kit.simulation.unroll import (ClosedLoopSimulator, ClosedLoopSimulatorModes, SimulationOutputCLE,
                                      UnrollInputOutput)
+import logging
+logging.basicConfig(filename='/workspace/source/src/log/info.log', level=logging.DEBUG, filemode='w')
 
 
 #: Maximum acceleration magnitude for kinematic model
@@ -151,7 +153,11 @@ class L5Env2(gym.Env):
         num_future_states = cfg['model_params']['future_num_frames']
         num_future_states = 1
         # Continuous Action Space: gym.spaces.Box (X, Y, Yaw * number of future states)
-        self.action_space = spaces.Box(low=np.array([-4.78996407367,-0.08430253761, -0.04280026698]), high=np.array([5.95755327367, 0.08809601841, 0.04151081038]), shape=(num_future_states*3,))
+        # self.action_space = spaces.Box(low=np.array([-4.78996407367,-0.08430253761, -1]), high=np.array([5.95755327367, 0.08809601841, 1]), shape=(num_future_states*3,))
+        # self.action_space = spaces.Box(low=np.array([-4.78996407367, -2, -2]), high=np.array([5.95755327367, 2,2]), shape=(num_future_states*3,))
+        # self.action_space = spaces.Box(low =np.array([-1.0, -1.0, -1.0]), high=np.array([1.0, 1.0,1.0]), dtype=np.float32, shape=(num_future_states*3,))
+        # self.action_space = spaces.Box(low =np.array([-10.0, -10.0, -10.0]), high=np.array([10.0, 10.0,10.0]), dtype=np.float32, shape=(num_future_states*3,))
+        self.action_space = spaces.Box(low =-np.inf, high=np.inf, dtype=np.float32, shape=(num_future_states*3,))
 
         # Observation Space: gym.spaces.Dict (image: [n_channels, raster_size, raster_size])
         # obs_shape = (n_channels, raster_size, raster_size)
@@ -385,11 +391,15 @@ class L5Env2(gym.Env):
         # EGO
         if not self.sim_cfg.use_ego_gt:
             # print('l5env2 action:', action)
-            action = self._rescale_action(action)
-            # print('l5env2 rescaled action:', action)
-            ego_output = self._convert_action_to_ego_output(action)
+            # newAction = action.copy() / 10.0
+            newAction = action
+            logging.debug(f'l5env2 original action:{newAction}')
+            newAction = self._rescale_action(newAction)
+            logging.debug(f'l5env2 rescaled action:{newAction}')
+            ego_output = self._convert_action_to_ego_output(newAction)
             # print('l5env2 output dict:', ego_output)
             self.ego_output_dict = ego_output
+            logging.debug(f'l5env2 ego dict:{ego_output}')
 
             if self.cle:
                 # In closed loop training, the raster is updated according to predicted ego positions.
