@@ -67,7 +67,7 @@ def calculate_non_kinematic_rescale_params(sim_dataset: SimulationDataset) -> No
     # return NonKinematicActionRescaleParams(x_mu, 10 * x_std, y_mu, 10 * y_std, yaw_mu, 10 * yaw_std)
     # Keeping scale = 20 * std  for y_std and y_yaw and 
     # self.non_kin_rescale = NonKinematicActionRescaleParams(x_mu=0.5837946, x_scale=5.373758673667908, y_mu=0.0018967404, y_scale=0.08619927801191807, yaw_mu=-0.0006447283, yaw_scale=0.04215553868561983)
-    return NonKinematicActionRescaleParams(x_mu, 10 * x_std, y_mu, 100 * y_std, yaw_mu, 100 * yaw_std)
+    return NonKinematicActionRescaleParams(x_mu, 10 * x_std, y_mu, 10 * y_std, yaw_mu, 10 * yaw_std)
 
 
 def save_input_raster(rasterizer: Rasterizer, image: torch.Tensor, num_images: int = 20,
