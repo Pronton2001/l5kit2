@@ -292,7 +292,9 @@ class L5Env(gym.Env):
 
         # EGO
         if not self.sim_cfg.use_ego_gt:
+            print('ego action:', action)
             action = self._rescale_action(action)
+            print('rescaled action:', action)
             ego_output = self._convert_action_to_ego_output(action)
             self.ego_output_dict = ego_output
 

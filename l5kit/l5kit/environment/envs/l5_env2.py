@@ -249,11 +249,12 @@ class L5Env2(gym.Env):
 
         if self.use_kinematic:
             self.kin_model = kin_model if kin_model is not None else UnicycleModel()
-            # self.kin_rescale = self._get_kin_rescale_params()
-            self.kin_rescale = KinematicActionRescaleParams(steer_scale=0.07853981633974483, acc_scale=0.6000000000000001)
+            self.kin_rescale = self._get_kin_rescale_params()
+            #NOTE: Set constants value may be dangerous, training set != testset
+            # self.kin_rescale = KinematicActionRescaleParams(steer_scale=0.07853981633974483, acc_scale=0.6000000000000001)
         else:
-            # self.non_kin_rescale = self._get_non_kin_rescale_params()
-            self.non_kin_rescale = NonKinematicActionRescaleParams(x_mu=0.5837946, x_scale=5.373758673667908, y_mu=0.0018967404, y_scale=0.08619927801191807, yaw_mu=-0.0006447283, yaw_scale=0.04215553868561983)
+            self.non_kin_rescale = self._get_non_kin_rescale_params()
+            # self.non_kin_rescale = NonKinematicActionRescaleParams(x_mu=0.5837946, x_scale=5.373758673667908, y_mu=0.0018967404, y_scale=0.08619927801191807, yaw_mu=-0.0006447283, yaw_scale=0.04215553868561983)
 
         # If not None, reset_scene_id is the scene_id that will be rolled out when reset is called
         self.reset_scene_id = reset_scene_id
