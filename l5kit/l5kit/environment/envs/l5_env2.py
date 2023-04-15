@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, NamedTuple, Optional
 
 import gym
+from src.constant import SRC_PATH
 from l5kit.dataset.ego import EgoDatasetVectorized
 import numpy as np
 import torch
@@ -24,7 +25,7 @@ from l5kit.simulation.dataset import SimulationConfig, SimulationDataset
 from l5kit.simulation.unroll import (ClosedLoopSimulator, ClosedLoopSimulatorModes, SimulationOutputCLE,
                                      UnrollInputOutput)
 import logging
-logging.basicConfig(filename='/workspace/source/src/log/info.log', level=logging.DEBUG, filemode='w')
+logging.basicConfig(filename=SRC_PATH + 'src/log/info.log', level=logging.DEBUG, filemode='w')
 
 
 #: Maximum acceleration magnitude for kinematic model
