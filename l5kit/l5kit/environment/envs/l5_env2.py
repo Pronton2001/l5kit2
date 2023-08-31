@@ -25,7 +25,7 @@ from l5kit.simulation.dataset import SimulationConfig, SimulationDataset
 from l5kit.simulation.unroll import (ClosedLoopSimulator, ClosedLoopSimulatorModes, SimulationOutputCLE,
                                      UnrollInputOutput)
 import logging
-logging.basicConfig(filename=SRC_PATH + 'src/log/info2.log', level=logging.DEBUG, filemode='w')
+logging.basicConfig(filename=SRC_PATH + 'src/log/info.log', level=logging.DEBUG, filemode='w')
 
 
 #: Maximum acceleration magnitude for kinematic model
@@ -159,7 +159,11 @@ class L5Env2(gym.Env):
         # self.action_space = spaces.Box(low =np.array([-1.0, -1.0, -1.0]), high=np.array([1.0, 1.0,1.0]), dtype=np.float32, shape=(num_future_states*3,))
         # self.action_space = spaces.Box(low =np.array([-10.0, -10.0, -10.0]), high=np.array([10.0, 10.0,10.0]), dtype=np.float32, shape=(num_future_states*3,))
         # self.action_space = spaces.Box(low =-np.inf, high=np.inf, dtype=np.float32, shape=(num_future_states*3,))
-        self.action_space = spaces.Box(low =-1, high=1, dtype=np.float32, shape=(num_future_states*3,))
+        if use_kinematic:
+            self.action_space = spaces.Box(low =-1, high=1, dtype=np.float32, shape=(num_future_states*2,))
+        else:
+            self.action_space = spaces.Box(low =-1, high=1, dtype=np.float32, shape=(num_future_states*3,))
+            # self.action_space = spaces.Box(low =-np.inf, high=np.inf, dtype=np.float32, shape=(num_future_states*3,))
 
         # Observation Space: gym.spaces.Dict (image: [n_channels, raster_size, raster_size])
         # obs_shape = (n_channels, raster_size, raster_size)
@@ -176,6 +180,23 @@ class L5Env2(gym.Env):
         MAX_POINTS_CW = cfg['data_generation_params']['lane_params']["max_points_per_crosswalk"]
         MAX_CROSSWALKS = cfg['data_generation_params']['lane_params']["max_num_crosswalks"]
         self.observation_space = spaces.Dict({
+            'type': spaces.Discrete(17),
+            'all_other_agents_types': spaces.MultiDiscrete(nvec=[17]*num_agents),
+            'agent_trajectory_polyline': spaces.Box(low=-1e9, high=1e9, shape= (max_history_num_frames + 1, 3), dtype=np.float32),
+            'agent_polyline_availability' :  spaces.MultiBinary(n= (max_history_num_frames + 1,)),
+      
+            'other_agents_polyline': spaces.Box(low=-1e9, high=1e9, shape= (num_agents, max_history_num_frames + 1, 3), dtype=np.float32),
+            'other_agents_polyline_availability': spaces.MultiBinary(n= (num_agents, max_history_num_frames + 1,)),
+
+            'lanes_mid':  spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES, MAX_POINTS_LANES, 3), dtype=np.float32),
+            'lanes_mid_availabilities': spaces.MultiBinary(n= (MAX_LANES, MAX_POINTS_LANES)),
+            'lanes': spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES * 2, MAX_POINTS_LANES, 3), dtype=np.float32),
+            'crosswalks':spaces.Box(low=-1e9, high=1e9, shape= (MAX_CROSSWALKS, MAX_POINTS_CW, 3), dtype=np.float32),
+            'crosswalks_availabilities': spaces.MultiBinary(n= (MAX_CROSSWALKS, MAX_POINTS_CW)), 
+            'old_speed': spaces.Box(low=-2, high=2, shape = (1,), dtype=np.float32),
+        })
+
+
             # "lanes": lanes,
             # "lanes_availabilities": lanes_availabilities.astype(np.bool),
             # "lanes_mid": lanes_mid,
@@ -196,22 +217,6 @@ class L5Env2(gym.Env):
             # "other_agents_polyline": other_agents_polyline,
             # "other_agents_polyline_availability": other_agents_polyline_availability.astype(np.bool),
 # @@@@@@@@@@
-
-            'type': spaces.Discrete(17),
-            'all_other_agents_types': spaces.MultiDiscrete(nvec=[17]*num_agents),
-            'agent_trajectory_polyline': spaces.Box(low=-1e9, high=1e9, shape= (max_history_num_frames + 1, 3), dtype=np.float32),
-            'agent_polyline_availability' :  spaces.MultiBinary(n= (max_history_num_frames + 1,)),
-
-      
-            'other_agents_polyline': spaces.Box(low=-1e9, high=1e9, shape= (num_agents, max_history_num_frames + 1, 3), dtype=np.float32),
-            'other_agents_polyline_availability': spaces.MultiBinary(n= (num_agents, max_history_num_frames + 1,)),
-
-            'lanes_mid':  spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES, MAX_POINTS_LANES, 3), dtype=np.float32),
-            'lanes_mid_availabilities': spaces.MultiBinary(n= (MAX_LANES, MAX_POINTS_LANES)),
-            'lanes': spaces.Box(low=-1e9, high=1e9, shape= (MAX_LANES * 2, MAX_POINTS_LANES, 3), dtype=np.float32),
-            'crosswalks':spaces.Box(low=-1e9, high=1e9, shape= (MAX_CROSSWALKS, MAX_POINTS_CW, 3), dtype=np.float32),
-            'crosswalks_availabilities': spaces.MultiBinary(n= (MAX_CROSSWALKS, MAX_POINTS_CW)), 
-
             # 'target_yaws': spaces.Box(low=-2*math.pi, high=2*math.pi, shape= (cfg["model_params"]["future_num_frames"], 1), dtype=np.float32), 
             # 'target_positions': spaces.Box(low=-5, high=5, shape= (cfg["model_params"]["future_num_frames"], 2), dtype=np.float32), 
             # 'target_availabilities': spaces.MultiBinary(n=(cfg["model_params"]["future_num_frames"],)),
@@ -222,7 +227,7 @@ class L5Env2(gym.Env):
             # 'history_positions':  spaces.Box(low=-1, high=1, shape=(max_history_num_frames + 1, 2), dtype=np.float32),
             # 'history_yaws': spaces.Box(low=-1, high=1, shape=(max_history_num_frames + 1, 1), dtype=np.float32),
             # 'history_availabilities': spaces.MultiBinary(n= (num_agents, max_history_num_frames + 1,)),
-        })
+        # })
         # self.observation_space =spaces.Box(low=0, high=1, shape=obs_shape, dtype=np.float32)
 
         # Simulator Config within Gym
@@ -257,6 +262,7 @@ class L5Env2(gym.Env):
         else:
             self.non_kin_rescale = self._get_non_kin_rescale_params()
             # self.non_kin_rescale = NonKinematicActionRescaleParams(x_mu=0.5837946, x_scale=5.373758673667908, y_mu=0.0018967404, y_scale=0.08619927801191807, yaw_mu=-0.0006447283, yaw_scale=0.04215553868561983)
+        self.old_speed = np.array([0.0])
 
         # If not None, reset_scene_id is the scene_id that will be rolled out when reset is called
         self.reset_scene_id = reset_scene_id
@@ -326,6 +332,7 @@ class L5Env2(gym.Env):
         if self.use_kinematic:
             init_kin_state = np.array([0.0, 0.0, 0.0, self.step_time * ego_input[0]['speed']])
             self.kin_model.reset(init_kin_state)
+            self.old_speed = np.asarray([self.step_time * ego_input[0]['speed']], dtype=np.float32)
 
         # Only output the image attribute
         # raise ValueError(ego_input[0]['lanes'])
@@ -346,6 +353,7 @@ class L5Env2(gym.Env):
                 'lanes':ego_input[0]["lanes"],
                 'lanes_mid': ego_input[0]["lanes_mid"],
                 'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+                'old_speed': self.old_speed,
 
                 # 'target_positions': ego_input[0]["target_positions"],
                 # 'target_yaws': ego_input[0]["target_yaws"],
@@ -395,10 +403,9 @@ class L5Env2(gym.Env):
         if not self.sim_cfg.use_ego_gt:
             # print('l5env2 action:', action)
             # newAction = action.copy() / 10.0
-            newAction = action
-            # logging.debug(f'l5env2 original action:{newAction}')
-            newAction = self._rescale_action(newAction)
-            # logging.debug(f'l5env2 rescaled action:{newAction}')
+            # logging.debug(f'l5env2 original action:{action}')
+            newAction = self._rescale_action(action)
+            # logging.debug(f'l5env2 rescaled action:{action}')
             ego_output = self._convert_action_to_ego_output(newAction)
             # print('l5env2 output dict:', ego_output)
             self.ego_output_dict = ego_output
@@ -425,16 +432,18 @@ class L5Env2(gym.Env):
         # Optionally we can pass additional info
         # We are using "info" to output rewards and simulated outputs (during evaluation)
         info: Dict[str, Any]
-        info = {'reward_tot': reward["total"], 'reward_dist': reward["distance"], 'reward_yaw': reward["yaw"]}
+        info = {'reward_tot': reward["total"], 'reward_dist': reward["distance"], 'reward_yaw': reward["yaw"], 'ego_output': self.ego_output_dict, 'action': action}
         if done and self.return_info:
             info = {"sim_outs": self.get_episode_outputs(), "reward_tot": reward["total"],
-                    "reward_dist": reward["distance"], "reward_yaw": reward["yaw"]}
+                    "reward_dist": reward["distance"], "reward_yaw": reward["yaw"], 'ego_output': self.ego_output_dict, 'action':action }
 
         # Get next obs
+        if self.use_kinematic:
+            self.old_speed = np.asarray([self.kin_model.old_v], dtype=np.float32)
         self.frame_index += 1
         obs = self._get_obs(self.frame_index, episode_over)
 
-        # return obs, reward, done, info
+        # return obs, reward, done, inoc
         return GymStepOutput(obs, reward["total"], done, info)
 
     def get_episode_outputs(self) -> List[EpisodeOutputGym]:
@@ -479,6 +488,7 @@ class L5Env2(gym.Env):
                 'lanes':ego_input[0]["lanes"],
                 'lanes_mid': ego_input[0]["lanes_mid"],
                 'lanes_mid_availabilities':ego_input[0]["lanes_mid_availabilities"],
+                'old_speed': self.old_speed,
 
                 # 'type': torch.as_tensor(ego_input[0]["type"]).to(self.device),
                 # 'all_other_agents_types': torch.as_tensor(ego_input[0]["all_other_agents_types"]).to(self.device),

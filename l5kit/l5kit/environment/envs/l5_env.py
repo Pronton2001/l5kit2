@@ -23,6 +23,11 @@ from l5kit.simulation.dataset import SimulationConfig, SimulationDataset
 from l5kit.simulation.unroll import (ClosedLoopSimulator, ClosedLoopSimulatorModes, SimulationOutputCLE,
                                      UnrollInputOutput)
 
+import logging
+
+from src.constant import SRC_PATH
+logging.basicConfig(filename=SRC_PATH + 'src/log/info.log', level=logging.DEBUG, filemode='w')
+
 
 #: Maximum acceleration magnitude for kinematic model
 MAX_ACC = 6
@@ -147,7 +152,10 @@ class L5Env(gym.Env):
 
         # Define action and observation space
         # Continuous Action Space: gym.spaces.Box (X, Y, Yaw * number of future states)
-        self.action_space = spaces.Box(low=-1, high=1, shape=(3, ))
+        if use_kinematic:
+            self.action_space = spaces.Box(low =-1, high=1, dtype=np.float32, shape=(2,))
+        else:
+            self.action_space = spaces.Box(low =-1, high=1, dtype=np.float32, shape=(3,))
 
         # Observation Space: gym.spaces.Dict (image: [n_channels, raster_size, raster_size])
         obs_shape = (n_channels, raster_size, raster_size)
@@ -292,10 +300,10 @@ class L5Env(gym.Env):
 
         # EGO
         if not self.sim_cfg.use_ego_gt:
-            # print('ego action:', action)
+            logging.debug(f'ego action: {action}')
             action = self._rescale_action(action)
-            # print('rescaled action:', action)
             ego_output = self._convert_action_to_ego_output(action)
+            logging.debug(f'ego dict: {ego_output}')
             self.ego_output_dict = ego_output
 
             if self.cle:
