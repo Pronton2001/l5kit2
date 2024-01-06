@@ -59,6 +59,7 @@ class VectorizedUnrollModel(VectorizedModel):
             disable_map,
             disable_lane_boundaries,
         )
+#         self._d_local = 128
 
         self.detach_unroll = detach_unroll
         self.warmup_num_frames = warmup_num_frames

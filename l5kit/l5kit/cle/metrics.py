@@ -299,3 +299,30 @@ class SimulatedVsRecordedEgoSpeedMetric(SupportsMetricCompute):
 
         # TODO: Replace 10 by (1 / step_time)
         return (simulated_speed - recorded_speed) * 10
+
+class SimulatedEgoAccMetric(SupportsMetricCompute):
+    """This metric computes the speed delta between recorded and simulated ego.
+    When simulated ego is traveling faster than recorded ego, this metric is > 0.
+    When simulated ego is traveling slower than recorded ego, this metric is < 0.
+    We can use this metric in conjunction with a RangeValidator to identify cases
+    where simulated ego is consistently traveling much faster (or much slower) than recorded ego.
+    """
+    metric_name = "simulated_ego_acceleration"
+
+    def compute(self, simulation_output: SimulationOutputCLE) -> torch.Tensor:
+        # calculate the speed error between simulated and recorded ego over the course of the simulation.
+        simulated_centroid = simulation_output.simulated_ego_states[:, :2]
+        # print('len:', len(simulated_centroid))
+        # print('x,y:',simulated_centroid)
+        simulated_velocity = simulated_centroid[1:] - simulated_centroid[:-1]
+        # print('vel', simulated_velocity)
+        simulated_velocity = torch.linalg.norm(simulated_velocity, dim=1) * 10
+        # print('norm vel', simulated_velocity)
+        
+        simulated_acc = simulated_velocity[1:] - simulated_velocity[:-1]
+        # print('acc', simulated_acc)
+        # simulated_acc = torch.linalg.norm(simulated_acc, dim=1)
+        # print('acc', (abs(simulated_acc)) * 10)
+
+        # TODO: Replace 100 by (1 / step_time**2)
+        return abs(simulated_acc) * 10

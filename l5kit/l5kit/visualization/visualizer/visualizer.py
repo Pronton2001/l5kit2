@@ -732,3 +732,98 @@ def visualize5(scene_index: int, frames: List[FrameVisualization], doc, trajecto
 
     return column(f, button)
     # return f
+
+def visualize_plot(frame_index: int, frames: FrameVisualization, doc) -> LayoutDOM:
+    """Visualise a scene using Bokeh.
+
+    :param scene_index: the index of the scene, used only as the title
+    :param frames: a list of FrameVisualization objects (one per frame of the scene)
+    """
+
+    agent_hover = HoverTool(
+        mode="mouse",
+        names=["agents"],
+        tooltips=[
+            ("Type", "@agent_type"),
+            ("Probability", "@prob{0.00}%"),
+            ("Track id", "@track_id"),
+        ],
+    )
+    out: Dict[str, ColumnDataSource] = None
+
+    trajectories_labels = np.unique([traj.legend_label for traj in frames.trajectories])
+
+    frame = frames
+    # we need to ensure we have something otherwise js crashes
+    ego_dict = _visualization_list_to_dict([frame.ego], EgoVisualization(xs=np.empty(0), ys=np.empty(0),
+                                                                            color="black", center_x=0,
+                                                                            center_y=0))
+
+    agents_dict = _visualization_list_to_dict(frame.agents, AgentVisualization(xs=np.empty(0), ys=np.empty(0),
+                                                                                color="black", track_id=-2,
+                                                                                agent_type="", prob=0.))
+
+    lanes_dict = _visualization_list_to_dict(frame.lanes, LaneVisualization(xs=np.empty(0), ys=np.empty(0),
+                                                                            color="black"))
+
+    crosswalk_dict = _visualization_list_to_dict(frame.crosswalks, CWVisualization(xs=np.empty(0), ys=np.empty(0),
+                                                                                    color="black"))
+
+    # for trajectory we extract the labels so that we can show them in the legend
+    trajectory_dict: Dict[str, Dict[str, Any]] = {}
+    for trajectory_label in trajectories_labels:
+        trajectories = [el for el in frame.trajectories if el.legend_label == trajectory_label]
+        trajectory_dict[trajectory_label] = _visualization_list_to_dict(trajectories,
+                                                                        TrajectoryVisualization(xs=np.empty(0),
+                                                                                                ys=np.empty(0),
+                                                                                                color="black",
+                                                                                                legend_label="none",
+                                                                                                track_id=-2))
+
+    frame_dict = dict(ego=ColumnDataSource(ego_dict), agents=ColumnDataSource(agents_dict),
+                        lanes=ColumnDataSource(lanes_dict),
+                        crosswalks=ColumnDataSource(crosswalk_dict))
+    frame_dict.update({k: ColumnDataSource(v) for k, v in trajectory_dict.items()})
+
+    out =frame_dict
+
+    f = bokeh.plotting.figure(
+        # title="t = {}s".format(frame_index),
+        match_aspect=True,
+        x_range=(out["ego"].data["center_x"][0] - 50, out["ego"].data["center_x"][0] + 50),
+        y_range=(out["ego"].data["center_y"][0] - 50, out["ego"].data["center_y"][0] + 50),
+        # tools=["pan", "wheel_zoom", agent_hover, "save", "reset"],
+        # active_scroll="wheel_zoom",
+    )
+
+    f.xgrid.grid_line_color = None
+    f.ygrid.grid_line_color = None
+
+    f.patches(line_width=0, alpha=0.5, color="color", source=out["lanes"])
+    f.patches(line_width=0, alpha=0.5, color="#B5B50D", source=out["crosswalks"])
+    f.patches(line_width=2, color="#B53331", source=out["ego"])
+    f.patches(line_width=2, color="color", name="agents", source=out["agents"])
+    for trajectory_name in trajectories_labels:
+        f.multi_line(alpha=0.8, line_width=3, source=out[trajectory_name], color="color",
+                        legend_label=trajectory_name)
+
+    # js_string += f'sources["{trajectory_name}"].data = frames[cb_obj.value]["{trajectory_name}"].data;\n' \
+    #                 f'sources["{trajectory_name}"].change.emit();\n'
+
+    # Create a list of sources to update
+    # sources = [out[0]["lanes"], out[0]["crosswalks"], out[0]["ego"], out[0]["agents"]]
+    # sources.extend([out[0][k] for k in trajectories_labels])
+
+    # Update the sources for each frame and append the figure to the list of figures
+    frame = out
+    f.x_range.start =out["ego"].data["center_x"][0] - 50
+    f.x_range.end =out["ego"].data["center_x"][0] + 50
+    f.y_range.start =out["ego"].data["center_y"][0] - 50
+    f.y_range.end =out["ego"].data["center_y"][0] + 50
+    f.toolbar_location = None
+    f.axis.visible = False
+    f.min_border = 0
+    for k, v in frame.items():
+        if k in out:
+            out[k].data.update(v.data)
+    return f
